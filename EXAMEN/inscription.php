@@ -4,12 +4,17 @@ require_once 'connexion.php';
 $message = "";
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $nom = trim($_POST['nom']);
-    $email = trim($_POST['email']);
-    $mot_de_passe = $_POST['mot_de_passe'];
-    $role = $_POST['role']; // admin, journaliste, lecteur
+    $nom = trim($_POST['nom'] ?? '');
+    $email = trim($_POST['email'] ?? '');
+    $mot_de_passe = $_POST['mot_de_passe'] ?? '';
+    $role = $_POST['role'] ?? 'lecteur'; // Récupère le rôle sélectionné
 
-    if (!empty($nom) && !empty($email) && !empty($mot_de_passe) && !empty($role)) {
+    // SÉCURITÉ : Empêcher absolument qu'un utilisateur s'inscrive en tant qu'admin
+    if ($role === 'admin' || !in_array($role, ['lecteur', 'journaliste'])) {
+        $role = 'lecteur'; // Force par défaut à lecteur en cas de tentative de modification du formulaire
+    }
+
+    if (!empty($nom) && !empty($email) && !empty($mot_de_passe)) {
         // Vérifier si l'email existe déjà
         $stmt = $pdo->prepare("SELECT id FROM utilisateurs WHERE email = ?");
         $stmt->execute([$email]);
@@ -66,7 +71,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                 <select name="role" class="form-select" required>
                                     <option value="lecteur">Lecteur</option>
                                     <option value="journaliste">Journaliste</option>
-                                    <option value="admin">Administrateur</option>
+                                    <!-- L'option Administrateur a été supprimée ici -->
                                 </select>
                             </div>
                             <button type="submit" class="btn btn-primary w-100">S'inscrire</button>
